@@ -14,18 +14,22 @@
  * limitations under the License.
  */
 
-package reactivecity.partitioner
+package reactivecity.controller
 
-import akka.actor.ActorSystem
+import akka.actor.{Actor, ActorLogging, ActorPath}
+import akka.cluster.Member
+import reactivecity.control.Repo
 
-object Partitioner {
+class Repository extends Actor with ActorLogging {
+  import Repo._
 
-  def main(args: Array[String]): Unit = {
-    val location =
-      if (args.length > 0) args(0) else throw new IllegalArgumentException("require location passed by args")
-    // Use the randomly assigned port for us.
-    val system = ActorSystem("reactive-city-system")
+  private var repo = Map[String, ActorPath]()
 
-    system.actorOf(FlowPartition.props(location), s"partitioner-$location")
+  override def receive: Receive = {
+    case Registration(c) =>
+      repo += (c -> sender().path)
+    // TODO: should guarantee delivery here.
+    case Retrieve(c) =>
+      sender() ! repo(c)
   }
 }

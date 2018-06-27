@@ -14,18 +14,9 @@
  * limitations under the License.
  */
 
-package reactivecity.partitioner
+package reactivecity.control
 
-import akka.actor.ActorSystem
-
-object Partitioner {
-
-  def main(args: Array[String]): Unit = {
-    val location =
-      if (args.length > 0) args(0) else throw new IllegalArgumentException("require location passed by args")
-    // Use the randomly assigned port for us.
-    val system = ActorSystem("reactive-city-system")
-
-    system.actorOf(FlowPartition.props(location), s"partitioner-$location")
-  }
+object Repo {
+  case class Registration(context: String)
+  case class Retrieve(context: String)
 }

@@ -26,7 +26,7 @@ import reactivecity.model.Vehicle
  */
 class FlowPartition(val location: String) extends Actor with ActorLogging {
 
-  log.info(s"Spawn a flow partitioner at $location")
+  log.info(s"Spawn a flow partitioner, path ${self.path}")
 
   // TODO: Flow partition and router creation.
   override def receive: Receive = {

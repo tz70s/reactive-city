@@ -17,19 +17,12 @@
 package reactivecity.controller
 
 import akka.actor.ActorSystem
-import com.typesafe.config.ConfigFactory
 
 /** Singleton system for managing reactive-city-systems */
 object Controller {
 
   def main(args: Array[String]): Unit = {
-    val config = if (args.length > 0) {
-      ConfigFactory.parseString(s"akka.remote.netty.tcp.port=${args(0)}").withFallback(ConfigFactory.load())
-    } else {
-      throw new IllegalArgumentException("error occurred on parsing config.")
-    }
-
-    implicit val system = ActorSystem("reactive-city-system", config)
+    implicit val system = ActorSystem("reactive-city-system")
     system.log.info("Create an reactive-city-controller-system")
     // Spawn a seed listener actors.
     val seed = system.actorOf(ControllerSeed.props)

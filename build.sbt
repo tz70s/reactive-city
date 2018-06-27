@@ -32,6 +32,8 @@ lazy val libraries = Seq(
 )
 
 lazy val serde = Seq(
+  "com.typesafe.akka" %% "akka-actor" % akkaVersion,
+  "com.typesafe.akka" %% "akka-testkit" % akkaVersion % Test,
   "io.spray" %%  "spray-json" % "1.3.4",
   "org.scalatest" %% "scalatest" % "3.0.5" % Test
 )
@@ -73,5 +75,6 @@ lazy val simulator = (project in file("simulator"))
     commonSettings,
     libraryDependencies ++= libraries
   )
+  .dependsOn(common)
 
 lazy val root = project in file(".")
