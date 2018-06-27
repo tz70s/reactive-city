@@ -17,15 +17,11 @@
 package reactivecity.partitioner
 
 import akka.actor.ActorSystem
+import com.typesafe.config.Config
 
 object Partitioner {
-
-  def main(args: Array[String]): Unit = {
-    val location =
-      if (args.length > 0) args(0) else throw new IllegalArgumentException("require location passed by args")
-    // Use the randomly assigned port for us.
-    val system = ActorSystem("reactive-city-system")
-
+  def start(location: String, config: Config): Unit = {
+    val system = ActorSystem("reactive-city-system", config)
     system.actorOf(FlowPartition.props(location), s"partitioner-$location")
   }
 }

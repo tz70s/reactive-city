@@ -20,6 +20,8 @@ import akka.actor.{Actor, ActorLogging, ActorSystem, Props, RootActorPath, Timer
 import akka.cluster.{Cluster, Member}
 import akka.cluster.ClusterEvent.{MemberExited, MemberUp}
 import reactivecity.model.Vehicle
+import akka.cluster.pubsub.DistributedPubSub
+import akka.cluster.pubsub.DistributedPubSubMediator.Publish
 
 import scala.concurrent.duration._
 
@@ -39,6 +41,8 @@ class PeriodicSender(val location: String) extends Actor with ActorLogging with 
   override def preStart(): Unit = cluster.subscribe(self, classOf[MemberUp])
   override def postStop(): Unit = cluster.unsubscribe(self)
 
+  private val mediator = DistributedPubSub(context.system).mediator
+
   private var knownPartitioners = Set[Member]()
 
   override def receive: Receive = {
@@ -57,12 +61,9 @@ class PeriodicSender(val location: String) extends Actor with ActorLogging with 
       }
     case Tick =>
       log.debug("Send data to the selected partitioner ...")
-      // TODO: remove this hard-coded way.
-      // Let the exception thrown and restart this is nice.
-      val partitioner = knownPartitioners.head
-      val selected = RootActorPath(partitioner.address) / "user" / "partitioner-fog-west"
-
-      context.actorSelection(selected) ! Vehicle("emergency", "test-vehicle", 2.5, "test-lane", List("test-lane"))
+      mediator ! Publish(
+        "fog-west-partitioner",
+        Vehicle("emergency", "test-vehicle", 2.5, "test-lane", List("test-lane")))
   }
 }
 

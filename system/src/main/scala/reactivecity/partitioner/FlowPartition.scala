@@ -17,6 +17,8 @@
 package reactivecity.partitioner
 
 import akka.actor.{Actor, ActorLogging, Props}
+import akka.cluster.pubsub.DistributedPubSub
+import akka.cluster.pubsub.DistributedPubSubMediator.{Subscribe, SubscribeAck}
 import reactivecity.model.Vehicle
 
 /**
@@ -25,13 +27,17 @@ import reactivecity.model.Vehicle
  * Maybe we can make the routing rr aware and use dynamic dispatching of analytics actors.
  */
 class FlowPartition(val location: String) extends Actor with ActorLogging {
-
   log.info(s"Spawn a flow partitioner, path ${self.path}")
+  private val mediator = DistributedPubSub(context.system).mediator
+  val subscribed = Subscribe(s"$location-partitioner", self)
+  mediator ! subscribed
 
   // TODO: Flow partition and router creation.
   override def receive: Receive = {
     case v: Vehicle =>
-      log.debug(s"Receiving vehicle data $v")
+      log.info(s"Receiving vehicle data $v")
+    case SubscribeAck(s) if s == subscribed =>
+      log.info(s"Subscribe to $s")
   }
 }
 

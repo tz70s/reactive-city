@@ -14,9 +14,17 @@
  * limitations under the License.
  */
 
-package reactivecity.control
+package reactivecity.controller
 
-object Repo {
-  case class Registration(context: String)
-  case class Retrieve(context: String)
+import akka.actor.ActorSystem
+import com.typesafe.config.Config
+
+/** Singleton system for managing reactive-city-systems */
+object Controller {
+  def start(config: Config): Unit = {
+    implicit val system = ActorSystem("reactive-city-system", config)
+    system.log.info("Create an reactive-city-controller-system")
+    // Spawn a seed listener actors.
+    val seed = system.actorOf(ControllerSeed.props)
+  }
 }

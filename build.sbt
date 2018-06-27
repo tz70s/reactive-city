@@ -28,7 +28,9 @@ lazy val libraries = Seq(
   "com.typesafe.akka" %% "akka-remote" % akkaVersion,
   "com.typesafe.akka" %% "akka-cluster" % akkaVersion,
   "com.typesafe.akka" %% "akka-cluster-metrics" % akkaVersion,
-  "com.typesafe.akka" %% "akka-testkit" % akkaVersion % Test
+  "com.typesafe.akka" %% "akka-cluster-tools" % akkaVersion,
+  "com.typesafe.akka" %% "akka-testkit" % akkaVersion % Test,
+  "org.rogach" %% "scallop" % "3.1.2"
 )
 
 lazy val serde = Seq(
@@ -44,31 +46,12 @@ lazy val common = (project in file("common"))
     libraryDependencies ++= serde
   )
 
-lazy val controller = (project in file("controller"))
+lazy val system = (project in file("system"))
   .settings(
     commonSettings,
     libraryDependencies ++= libraries
   )
   .dependsOn(common)
-
-lazy val partitioner = (project in file("partitioner"))
-  .settings(
-    commonSettings,
-    libraryDependencies ++= libraries
-  )
-  .dependsOn(common)
-
-lazy val analytics = (project in file("analytics"))
-  .settings(
-    commonSettings,
-    libraryDependencies ++= libraries
-  )
-
-lazy val reflector = (project in file("reflector"))
-  .settings(
-    commonSettings,
-    libraryDependencies ++= libraries
-  )
 
 lazy val simulator = (project in file("simulator"))
   .settings(
