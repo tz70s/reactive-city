@@ -17,29 +17,30 @@
 package reactivecity.controller
 
 import akka.actor.{Actor, ActorLogging, Props}
-import akka.cluster.Cluster
-import akka.cluster.ClusterEvent._
+import reactivecity.Metrics.Metric
+import akka.cluster.pubsub.DistributedPubSub
+import akka.cluster.pubsub.DistributedPubSubMediator.{Subscribe, SubscribeAck}
 
-object ControllerSeed {
-  def props: Props = Props(new ControllerSeed)
+object Scheduler {
+  def props(): Props = Props(new Scheduler)
 }
 
-class ControllerSeed extends Actor with ActorLogging {
-  val cluster = Cluster(context.system)
+class Scheduler extends Actor with ActorLogging {
 
-  // Subscribe membership events.
+  val mediator = DistributedPubSub(context.system).mediator
+
+  private var systemStates = Map[String, Metric]()
+
   override def preStart(): Unit = {
-    cluster.subscribe(self, initialStateMode = InitialStateAsEvents, classOf[MemberEvent], classOf[UnreachableMember])
+    mediator ! Subscribe("metrics", self)
   }
 
-  override def postStop(): Unit = cluster.unsubscribe(self)
-
   override def receive: Receive = {
-    case MemberUp(member) =>
-      log.info(s"Member $member is up!")
-    case UnreachableMember(member) =>
-      log.info(s"Current member $member is unreachable")
-    case MemberRemoved(member, previousStatus) =>
-      log.info(s"The member $member is removed after previous status $previousStatus")
+    case m: Metric =>
+      val index = s"${m.role}-${m.location}"
+      log.debug(s"Got metrics report from $index")
+      systemStates += (index -> m)
+    case SubscribeAck(Subscribe("metrics", None, `self`)) =>
+      log.info(s"Successfully to subscribe the metric topic.")
   }
 }

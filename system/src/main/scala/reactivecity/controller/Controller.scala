@@ -16,7 +16,9 @@
 
 package reactivecity.controller
 
-import akka.actor.ActorSystem
+import akka.actor.{Actor, ActorLogging, ActorSystem, Props}
+import akka.cluster.ClusterEvent._
+import akka.cluster.Cluster
 import reactivecity.MetricsService
 
 /** Singleton system for managing reactive-city-systems */
@@ -24,6 +26,42 @@ object Controller extends MetricsService {
 
   override def init()(implicit system: ActorSystem): Unit = {
     system.actorOf(ControllerSeed.props)
-    system.actorOf(MetricsManager.props(), "metrics-manager")
+    system.actorOf(Scheduler.props(), "scheduler")
+  }
+}
+
+object ControllerSeed {
+  case class QueryMemberByRole(role: String)
+  def props: Props = Props(new ControllerSeed)
+}
+
+class ControllerSeed extends Actor with ActorLogging {
+  import ControllerSeed._
+  val cluster = Cluster(context.system)
+
+  // Subscribe membership events.
+  override def preStart(): Unit = {
+    cluster.subscribe(
+      self,
+      initialStateMode = InitialStateAsEvents,
+      classOf[MemberEvent],
+      classOf[UnreachableMember],
+      classOf[ReachableMember])
+  }
+
+  override def postStop(): Unit = cluster.unsubscribe(self)
+
+  override def receive: Receive = {
+    case MemberUp(member) =>
+      log.debug(s"Member $member is up!")
+    case UnreachableMember(member) =>
+      log.debug(s"Current member $member is unreachable, remove from list.")
+    case ReachableMember(member) =>
+      log.debug(s"Resumed member $member is reachable, add back to list.")
+    case MemberRemoved(member, previousStatus) =>
+      log.debug(s"The member $member is removed after previous status $previousStatus")
+    case QueryMemberByRole(role) =>
+      // Get back a list of members.
+      sender() ! cluster.state.members.filter(_.hasRole(role))
   }
 }

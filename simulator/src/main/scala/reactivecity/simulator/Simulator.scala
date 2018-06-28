@@ -16,9 +16,9 @@
 
 package reactivecity.simulator
 
-import akka.actor.{Actor, ActorLogging, ActorSystem, Props, RootActorPath, Timers}
-import akka.cluster.{Cluster, Member}
-import akka.cluster.ClusterEvent.{MemberExited, MemberUp}
+import akka.actor.{Actor, ActorLogging, ActorSystem, Props, Timers}
+import akka.cluster.Cluster
+import akka.cluster.ClusterEvent.MemberEvent
 import reactivecity.model.Vehicle
 import akka.cluster.pubsub.DistributedPubSub
 import akka.cluster.pubsub.DistributedPubSubMediator.Publish
@@ -38,32 +38,28 @@ class PeriodicSender(val location: String) extends Actor with ActorLogging with 
   import PeriodicSender._
 
   val cluster = Cluster(context.system)
-  override def preStart(): Unit = cluster.subscribe(self, classOf[MemberUp])
+  override def preStart(): Unit = cluster.subscribe(self, classOf[MemberEvent])
   override def postStop(): Unit = cluster.unsubscribe(self)
+
+  private def reviseTimer(): Unit = {
+    if (cluster.state.members.exists(_.hasRole("partitioner"))) {
+      timers.startPeriodicTimer(TickKey, Tick, 1 seconds)
+    } else {
+      log.warning(s"no available partitioner now, drop out timer.")
+      timers.cancel(TickKey)
+    }
+  }
 
   private val mediator = DistributedPubSub(context.system).mediator
 
-  private var knownPartitioners = Set[Member]()
-
   override def receive: Receive = {
-    case MemberUp(member) =>
-      if (member.hasRole("partitioner")) {
-        // Wait until partitioner is up.
-        // Register into local states.
-        timers.startPeriodicTimer(TickKey, Tick, 1 seconds)
-        knownPartitioners += member
-      }
-    case MemberExited(member) =>
-      knownPartitioners -= member
-      if (knownPartitioners.isEmpty) {
-        // drop the timer.
-        timers.cancel(TickKey)
-      }
     case Tick =>
       log.debug("Send data to the selected partitioner ...")
-      mediator ! Publish(
-        "fog-west-partitioner",
-        Vehicle("emergency", "test-vehicle", 2.5, "test-lane", List("test-lane")))
+      val msg = Vehicle("emergency", "test-vehicle", 2.5, "test-lane", List("test-lane"))
+      mediator ! Publish(s"$location-partitioner", msg)
+
+    case _: MemberEvent =>
+      reviseTimer()
   }
 }
 
@@ -73,7 +69,6 @@ object Simulator {
     val preferLocation = if (args.length > 0) args(0) else "unset"
     // Use the randomly assigned port for us.
     val system = ActorSystem("reactive-city-system")
-
     system.actorOf(PeriodicSender.props(preferLocation))
   }
 }

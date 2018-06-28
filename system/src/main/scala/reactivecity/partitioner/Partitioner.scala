@@ -16,11 +16,41 @@
 
 package reactivecity.partitioner
 
-import akka.actor.ActorSystem
+import akka.actor.{Actor, ActorLogging, ActorSystem, Props}
+import akka.cluster.pubsub.DistributedPubSub
+import akka.cluster.pubsub.DistributedPubSubMediator.{Publish, Subscribe, SubscribeAck}
 import reactivecity.MetricsService
+import reactivecity.model.Vehicle
 
 object Partitioner extends MetricsService {
   override def init()(implicit system: ActorSystem): Unit = {
-    // do nothing
+    system.actorOf(FlowPartition.props("fog-west"))
   }
+}
+
+/**
+ * Actor responsible for partition flow into two flows.
+ * The flow partition actor also responsible as a router for flow migration from analytics.
+ * Maybe we can make the routing rr aware and use dynamic dispatching of analytics actors.
+ */
+class FlowPartition(val location: String) extends Actor with ActorLogging {
+  private val mediator = DistributedPubSub(context.system).mediator
+
+  val subscribed = Subscribe(s"$location-partitioner", self)
+  mediator ! subscribed
+
+  // TODO: We should first determine the possible routees.
+
+  override def receive: Receive = {
+    case v: Vehicle =>
+      mediator ! Publish("analytics", v)
+    case SubscribeAck(s) if s == subscribed =>
+      log.debug(s"Subscribe to $s")
+    case _ =>
+    // handle nothing.
+  }
+}
+
+object FlowPartition {
+  def props(location: String): Props = Props(new FlowPartition(location))
 }
