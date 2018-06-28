@@ -16,7 +16,7 @@
 
 package reactivecity
 
-import com.typesafe.config.ConfigFactory
+import com.typesafe.config.{Config, ConfigFactory}
 import org.rogach.scallop.ScallopConf
 import reactivecity.controller.Controller
 import reactivecity.partitioner.Partitioner
@@ -36,17 +36,22 @@ object System {
        |akka.remote.netty.tcp.port = $port
      """.stripMargin
   }
+
   private def matcher(conf: SystemConf): Unit = {
     val clusterConfig =
       ConfigFactory
         .parseString(clusterConfigString(conf.role(), conf.location(), conf.port.getOrElse(0)))
         .withFallback(ConfigFactory.load())
     conf.role() match {
-      case "controller"  => Controller.start(clusterConfig)
-      case "partitioner" => Partitioner.start(conf.location(), clusterConfig)
+      case "controller"  => launcher(Controller, conf.location(), conf.role(), clusterConfig)
+      case "partitioner" => launcher(Partitioner, conf.location(), conf.role(), clusterConfig)
       case "analytics"   =>
       case "reflector"   =>
     }
+  }
+
+  private def launcher[S <: MetricsService](s: S, location: String, role: String, config: Config): Unit = {
+    s.start(location, role, config)
   }
 
   def main(args: Array[String]): Unit = {

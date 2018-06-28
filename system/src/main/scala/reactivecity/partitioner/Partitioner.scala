@@ -17,11 +17,10 @@
 package reactivecity.partitioner
 
 import akka.actor.ActorSystem
-import com.typesafe.config.Config
+import reactivecity.MetricsService
 
-object Partitioner {
-  def start(location: String, config: Config): Unit = {
-    val system = ActorSystem("reactive-city-system", config)
-    system.actorOf(FlowPartition.props(location), s"partitioner-$location")
+object Partitioner extends MetricsService {
+  override def init()(implicit system: ActorSystem): Unit = {
+    // do nothing
   }
 }

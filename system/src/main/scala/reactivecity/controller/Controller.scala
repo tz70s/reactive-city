@@ -17,14 +17,13 @@
 package reactivecity.controller
 
 import akka.actor.ActorSystem
-import com.typesafe.config.Config
+import reactivecity.MetricsService
 
 /** Singleton system for managing reactive-city-systems */
-object Controller {
-  def start(config: Config): Unit = {
-    implicit val system = ActorSystem("reactive-city-system", config)
-    system.log.info("Create an reactive-city-controller-system")
-    // Spawn a seed listener actors.
-    val seed = system.actorOf(ControllerSeed.props)
+object Controller extends MetricsService {
+
+  override def init()(implicit system: ActorSystem): Unit = {
+    system.actorOf(ControllerSeed.props)
+    system.actorOf(MetricsManager.props(), "metrics-manager")
   }
 }
