@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package reactivecity.partitioner
+package reacty
 
 import akka.actor.{Actor, ActorLogging, ActorSystem, Props}
 import akka.cluster.pubsub.DistributedPubSub
 import akka.cluster.pubsub.DistributedPubSubMediator.{Publish, Subscribe, SubscribeAck}
-import reactivecity.MetricsService
-import reactivecity.model.Vehicle
+import reacty.model.Vehicle
 
 object Partitioner extends MetricsService {
   override def init()(implicit system: ActorSystem): Unit = {

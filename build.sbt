@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-name := "reactivecity"
+name := "reacty"
 
 lazy val commonSettings = Seq(
   version := "0.1",
@@ -46,7 +46,7 @@ lazy val common = (project in file("common"))
     libraryDependencies ++= serde
   )
 
-lazy val system = (project in file("system"))
+lazy val platform = (project in file("platform"))
   .settings(
     commonSettings,
     libraryDependencies ++= libraries

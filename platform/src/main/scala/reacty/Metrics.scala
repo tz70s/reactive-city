@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package reactivecity
+package reacty
 
 import akka.cluster.Cluster
 import akka.actor.{Actor, ActorLogging, ActorSystem, Props, Timers}
@@ -39,7 +39,7 @@ object Metrics {
  * It'll re-schedule the logic based on the reporting metrics.
  */
 class Metrics(private val location: String, private val role: String) extends Actor with ActorLogging with Timers {
-  import reactivecity.Metrics._
+  import reacty.Metrics._
   val cluster = Cluster(context.system)
   val mediator = DistributedPubSub(context.system).mediator
 

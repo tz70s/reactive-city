@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package reactivecity.controller
+package reacty
 
 import akka.actor.{Actor, ActorLogging, Props}
-import reactivecity.Metrics.Metric
 import akka.cluster.pubsub.DistributedPubSub
 import akka.cluster.pubsub.DistributedPubSubMediator.{Subscribe, SubscribeAck}
+import reacty.Metrics.Metric
 
 object Scheduler {
   def props(): Props = Props(new Scheduler)

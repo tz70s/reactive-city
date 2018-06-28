@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package reactivecity.model
+package reacty.model
 
 import org.scalatest._
 

@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package reactivecity.analytics
+package reacty
 
 import akka.actor.{Actor, ActorLogging, Props, Timers}
 import akka.cluster.pubsub.DistributedPubSub
 import akka.cluster.pubsub.DistributedPubSubMediator.{Subscribe, SubscribeAck}
-import reactivecity.MetricsService
-import reactivecity.model.Vehicle
+import reacty.model.Vehicle
 
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.duration._

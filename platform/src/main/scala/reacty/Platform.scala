@@ -14,21 +14,19 @@
  * limitations under the License.
  */
 
-package reactivecity
+package reacty
 
 import com.typesafe.config.{Config, ConfigFactory}
 import org.rogach.scallop.ScallopConf
-import reactivecity.controller.Controller
-import reactivecity.partitioner.Partitioner
 
-class SystemConf(args: Seq[String]) extends ScallopConf(args) {
+class PlatformConf(args: Seq[String]) extends ScallopConf(args) {
   val role = opt[String](required = true)
   val location = opt[String](required = true)
   val port = opt[Int]()
   verify()
 }
 
-object System {
+object Platform {
 
   private def clusterConfigString(role: String, location: String, port: Int) = {
     s"""
@@ -37,7 +35,7 @@ object System {
      """.stripMargin
   }
 
-  private def matcher(conf: SystemConf): Unit = {
+  private def matcher(conf: PlatformConf): Unit = {
     val clusterConfig =
       ConfigFactory
         .parseString(clusterConfigString(conf.role(), conf.location(), conf.port.getOrElse(0)))
@@ -55,7 +53,7 @@ object System {
   }
 
   def main(args: Array[String]): Unit = {
-    val config = new SystemConf(args)
+    val config = new PlatformConf(args)
     matcher(config)
   }
 }

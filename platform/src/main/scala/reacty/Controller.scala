@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package reactivecity.controller
+package reacty
 
 import akka.actor.{Actor, ActorLogging, ActorSystem, Props}
-import akka.cluster.ClusterEvent._
 import akka.cluster.Cluster
-import reactivecity.MetricsService
+import akka.cluster.ClusterEvent._
 
 /** Singleton system for managing reactive-city-systems */
 object Controller extends MetricsService {

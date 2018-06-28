@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package reactivecity.simulator
+package reacty.simulator
 
 import akka.actor.{Actor, ActorLogging, ActorSystem, Props, Timers}
 import akka.cluster.Cluster
 import akka.cluster.ClusterEvent.MemberEvent
-import reactivecity.model.Vehicle
+import reacty.model.Vehicle
 import akka.cluster.pubsub.DistributedPubSub
 import akka.cluster.pubsub.DistributedPubSubMediator.Publish
 
