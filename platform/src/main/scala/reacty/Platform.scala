@@ -41,10 +41,10 @@ object Platform {
         .parseString(clusterConfigString(conf.role(), conf.location(), conf.port.getOrElse(0)))
         .withFallback(ConfigFactory.load())
     conf.role() match {
-      case "controller"  => launcher(Controller, conf.location(), conf.role(), clusterConfig)
-      case "partitioner" => launcher(Partitioner, conf.location(), conf.role(), clusterConfig)
-      case "analytics"   =>
-      case "reflector"   =>
+      case "controller" => launcher(Controller, conf.location(), conf.role(), clusterConfig)
+      case "partition"  => launcher(Partition, conf.location(), conf.role(), clusterConfig)
+      case "analytics"  => launcher(Analytics, conf.location(), conf.role(), clusterConfig)
+      case "reflector"  =>
     }
   }
 

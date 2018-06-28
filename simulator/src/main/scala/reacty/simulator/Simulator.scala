@@ -42,10 +42,10 @@ class PeriodicSender(val location: String) extends Actor with ActorLogging with 
   override def postStop(): Unit = cluster.unsubscribe(self)
 
   private def reviseTimer(): Unit = {
-    if (cluster.state.members.exists(_.hasRole("partitioner"))) {
+    if (cluster.state.members.exists(_.hasRole("partition"))) {
       timers.startPeriodicTimer(TickKey, Tick, 1 seconds)
     } else {
-      log.warning(s"no available partitioner now, drop out timer.")
+      log.warning(s"no available partition now, drop out timer.")
       timers.cancel(TickKey)
     }
   }
@@ -54,11 +54,12 @@ class PeriodicSender(val location: String) extends Actor with ActorLogging with 
 
   override def receive: Receive = {
     case Tick =>
-      log.debug("Send data to the selected partitioner ...")
+      log.debug("Send data to the selected partition router ...")
       val msg = Vehicle("emergency", "test-vehicle", 2.5, "test-lane", List("test-lane"))
-      mediator ! Publish(s"$location-partitioner", msg)
+      mediator ! Publish(s"$location-partition", msg)
 
     case _: MemberEvent =>
+      // Checkout whether partition exists in cluster members and set/unset timer for publishing message.
       reviseTimer()
   }
 }
