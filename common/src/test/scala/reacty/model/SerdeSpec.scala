@@ -24,7 +24,7 @@ class SerdeSpec extends FlatSpec with Matchers {
 
   it should "be a valid serde" in {
     val vehicle =
-      Vehicle("emergency", "test-vehicle-id", 2.5, "test-lane-id-0", List("test-lane-id-0", "test-lane-id-1"))
+      Vehicle("emergency", "test-vehicle-id", 2.5, (2, 2))
 
     val rawVehicle =
       """
@@ -32,8 +32,7 @@ class SerdeSpec extends FlatSpec with Matchers {
         |  "shape": "emergency",
         |  "id": "test-vehicle-id",
         |  "speed": 2.5,
-        |  "lane": "test-lane-id-0",
-        |  "route": ["test-lane-id-0", "test-lane-id-1"]
+        |  "lane": [2, 2]
         |}
       """.stripMargin
 

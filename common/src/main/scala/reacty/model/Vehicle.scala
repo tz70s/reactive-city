@@ -18,8 +18,25 @@ package reacty.model
 
 import spray.json.{DefaultJsonProtocol, RootJsonFormat}
 
+import scala.util.Random
+
 object ReactiveCityJsonProtocol extends DefaultJsonProtocol {
-  implicit val vehicleFormat: RootJsonFormat[Vehicle] = jsonFormat5(Vehicle)
+  implicit val vehicleFormat: RootJsonFormat[Vehicle] = jsonFormat4(Vehicle)
 }
 
-case class Vehicle(shape: String, id: String, speed: Double, lane: String, route: List[String])
+object TrafficFactory {
+  private val shapes = Array("ambulance", "truck", "bmw", "benz", "toyota", "nissan", "volvo", "porsche")
+  private val rand = new Random()
+
+  def vehicle: Vehicle = {
+    val vertical = rand.nextInt(3)
+    val horizontal = rand.nextInt(3)
+    val lane = (vertical, horizontal)
+    val id = rand.nextInt(10000).toString
+    val speed = rand.nextDouble() * 100
+    val shape = shapes(rand.nextInt(shapes.length))
+    Vehicle(shape, id, speed, lane)
+  }
+}
+
+case class Vehicle(shape: String, id: String, speed: Double, lane: (Int, Int))

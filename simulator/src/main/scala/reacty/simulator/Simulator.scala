@@ -19,7 +19,7 @@ package reacty.simulator
 import akka.actor.{Actor, ActorLogging, ActorSystem, Props, Timers}
 import akka.cluster.Cluster
 import akka.cluster.ClusterEvent.MemberEvent
-import reacty.model.Vehicle
+import reacty.model.{TrafficFactory, Vehicle}
 import akka.cluster.pubsub.DistributedPubSub
 import akka.cluster.pubsub.DistributedPubSubMediator.Publish
 
@@ -55,7 +55,8 @@ class PeriodicSender(val location: String) extends Actor with ActorLogging with 
   override def receive: Receive = {
     case Tick =>
       log.debug("Send data to the selected partition router ...")
-      val msg = Vehicle("emergency", "test-vehicle", 2.5, "test-lane", List("test-lane"))
+      val msg = TrafficFactory.vehicle
+      log.info(s"Send data of $msg")
       mediator ! Publish(s"$location-partition", msg)
 
     case _: MemberEvent =>
