@@ -37,7 +37,8 @@ lazy val serde = Seq(
   "com.typesafe.akka" %% "akka-actor" % akkaVersion,
   "com.typesafe.akka" %% "akka-testkit" % akkaVersion % Test,
   "io.spray" %%  "spray-json" % "1.3.4",
-  "org.scalatest" %% "scalatest" % "3.0.5" % Test
+  "org.scalatest" %% "scalatest" % "3.0.5" % Test,
+  "de.aktey.akka.visualmailbox" %% "collector" % "1.1.0"
 )
 
 lazy val common = (project in file("common"))

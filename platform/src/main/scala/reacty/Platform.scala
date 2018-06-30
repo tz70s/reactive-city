@@ -40,12 +40,13 @@ object Platform {
       ConfigFactory
         .parseString(clusterConfigString(conf.role(), conf.location(), conf.port.getOrElse(0)))
         .withFallback(ConfigFactory.load())
-    conf.role() match {
-      case "controller" => launcher(Controller, conf.location(), conf.role(), clusterConfig)
-      case "partition"  => launcher(Partition, conf.location(), conf.role(), clusterConfig)
-      case "analytics"  => launcher(Analytics, conf.location(), conf.role(), clusterConfig)
-      case "reflector"  =>
+    val service: MetricsService = conf.role() match {
+      case "controller" => Controller
+      case "partition"  => Partition
+      case "analytics"  => Analytics
+      case "reflector"  => ???
     }
+    launcher(service, conf.location(), conf.role(), clusterConfig)
   }
 
   private def launcher[S <: MetricsService](s: S, location: String, role: String, config: Config): Unit = {

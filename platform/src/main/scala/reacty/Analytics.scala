@@ -26,9 +26,15 @@ object GroupByFlow {
 }
 
 class GroupByFlow extends Actor with ActorLogging {
-
   override def receive: Receive = {
     case v: Array[Vehicle] =>
       log.info(s"receive msg : $v")
+      val lanes = v.groupBy(_.lane)
+      lanes.map {
+        case (s, l) =>
+          val sum = l.reduce(_.speed + _.speed)
+          val average = sum / l.length
+          (s, average)
+      }
   }
 }

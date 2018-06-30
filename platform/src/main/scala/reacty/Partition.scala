@@ -97,7 +97,8 @@ class FlowPartition(val location: String) extends Actor with ActorLogging with S
     case SubscribeAck(s) if s == subscribed =>
       log.debug(s"Subscribe to $s")
 
-    case _ =>
+    case "scale" =>
+    case _       =>
     // handle nothing.
   }
 }
