@@ -2,10 +2,14 @@
 Congestion and emergency routing CQRS system.
 
 ## Usage
-Not finished, yet.
+```bash
+# Simplest build and execution.
+# Can modify the configurations in docker-compose.yml
+docker-compose up -d
+```
 
 ### Configuration passing
 For each instances (a.k.a actor-system) will be passed configuration by program arguments, in which we can pass it when starting containers.
 
 values:
-* location: one of `cloud`, `fog-east`, `fog-west`, this is essential for dynamic flow migration.
+* location: one of `cloud`, `fog-east`, `fog-west`, this is essential for flow recognition.
