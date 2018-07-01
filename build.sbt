@@ -30,6 +30,7 @@ lazy val libraries = Seq(
   "com.typesafe.akka" %% "akka-cluster-metrics" % akkaVersion,
   "com.typesafe.akka" %% "akka-cluster-tools" % akkaVersion,
   "com.typesafe.akka" %% "akka-testkit" % akkaVersion % Test,
+  "com.typesafe.akka" %% "akka-distributed-data" % akkaVersion,
   "org.rogach" %% "scallop" % "3.1.2"
 )
 

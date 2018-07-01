@@ -44,7 +44,7 @@ object Platform {
       case "controller" => Controller
       case "partition"  => Partition
       case "analytics"  => Analytics
-      case "reflector"  => ???
+      case "reflector"  => Reflector
     }
     launcher(service, conf.location(), conf.role(), clusterConfig)
   }

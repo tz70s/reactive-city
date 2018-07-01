@@ -73,11 +73,24 @@ class FlowPartition(val location: String) extends Actor with ActorLogging with S
         totalInstances = 100,
         maxInstancesPerNode = 30,
         allowLocalRoutees = false,
-        useRoles = Set("analytics"))).props(GroupByFlow.props),
+        useRoles = Set("analytics"))).props(GroupByFlow.props(location)),
     name = "router")
+
+  val routeToReflector = context.actorOf(
+    ClusterRouterPool(
+      RoundRobinPool(10),
+      ClusterRouterPoolSettings(
+        totalInstances = 10,
+        maxInstancesPerNode = 5,
+        allowLocalRoutees = false,
+        useRoles = Set("reflector"))).props(Reflector.props(location)),
+    name = "route-reflector")
 
   override def receive: Receive = {
     case v: Vehicle =>
+      if (v.shape == "ambulance") {
+        routeToReflector ! v
+      }
       val currentSize = batch(v)
       if (currentSize >= MAX_BATCH_SIZE) {
         val batch = drain()

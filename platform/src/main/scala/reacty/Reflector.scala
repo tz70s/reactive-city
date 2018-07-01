@@ -19,33 +19,24 @@ package reacty
 import akka.actor.{Actor, ActorLogging, ActorRef, Props, Timers}
 import akka.cluster.Cluster
 import akka.cluster.ddata.Replicator._
-import akka.cluster.ddata._
+import akka.cluster.ddata.{DistributedData, ORMultiMapKey}
 import reacty.model.Vehicle
 
-import scala.concurrent.duration._
-
-object Analytics extends MetricsService
-
-object GroupByFlow {
-  def props(location: String): Props = Props(new GroupByFlow(location))
+object Reflector extends MetricsService {
+  def props(location: String): Props = Props(new Reflector(location))
 }
 
-class GroupByFlow(val location: String) extends Actor with ActorLogging {
+class Reflector(val location: String) extends Actor with ActorLogging with Timers {
+
   implicit val cluster = Cluster(context.system)
   val replicator: ActorRef = DistributedData(context.system).replicator
   val DataKey = ORMultiMapKey[(Int, Int), Double](location)
 
   override def receive: Receive = {
-    case v: Array[Vehicle] =>
-      val lanes = v.groupBy(_.lane)
-      lanes.foreach {
-        case (key, value) =>
-          val sum = value.map(_.speed).sum
-          val average = sum / value.length
-          replicator ! Update(DataKey, ORMultiMap.empty[(Int, Int), Double], WriteLocal) { s =>
-            s - key
-            s + (key -> Set(average))
-          }
-      }
+    case v: Vehicle =>
+      replicator ! Get(DataKey, ReadLocal)
+    case g @ GetSuccess(DataKey, req) =>
+      val elements = g.get(DataKey)
+      log.info(s"$elements")
   }
 }
