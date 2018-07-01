@@ -35,6 +35,26 @@ class Reflector(val location: String) extends Actor with ActorLogging with Timer
   val replicator: ActorRef = DistributedData(context.system).replicator
   val DataKey = ORMultiMapKey[(Int, Int), Double](location)
 
+  private def shortestPath(current: Int, dst: Int, graph: Array[Array[Double]], visited: Array[Boolean]): Double = {
+    visited(current) = true
+    if (current == dst) {
+      0
+    } else {
+      val length = for (i <- graph(current).indices; if !visited(i) && (graph(current)(i) > 0)) yield {
+        graph(current)(i) + shortestPath(i, dst, graph, visited)
+      }
+      length.min
+    }
+  }
+
+  private def convertToArray(elements: Map[(Int, Int), Set[Double]]): Array[Array[Double]] = {
+    val result = Array.ofDim[Double](3, 3)
+    for ((lane, speed) <- elements) {
+      result(lane._1)(lane._2) = speed.head
+    }
+    result
+  }
+
   override def receive: Receive = {
     case v: Vehicle =>
       replicator ! Get(DataKey, ReadLocal)
@@ -42,10 +62,11 @@ class Reflector(val location: String) extends Actor with ActorLogging with Timer
 
     case g @ GetSuccess(DataKey, req) =>
       val elements = g.get(DataKey)
-      log.info(s"$elements")
+      val graph = convertToArray(elements.entries)
       val v = queue.head
-      val latency = Instant.now().minusMillis(v.time).toEpochMilli
       queue = queue.tail
-      log.info(s"Receive message $v, latency: ${latency}ms")
+      val _ = shortestPath(v.lane._1, 2, graph, Array.fill(3)(false))
+      val latency = Instant.now().minusMillis(v.time).toEpochMilli
+      log.info(s"Emergency handling for car $v, latency: ${latency}ms")
   }
 }
