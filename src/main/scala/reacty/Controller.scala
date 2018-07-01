@@ -23,7 +23,7 @@ import akka.cluster.ClusterEvent._
 /** Singleton system for managing reactive-city-systems */
 object Controller extends MetricsService {
 
-  override def init()(implicit system: ActorSystem): Unit = {
+  override def init(location: String, role: String)(implicit system: ActorSystem): Unit = {
     system.actorOf(ControllerSeed.props)
     system.actorOf(Scheduler.props(), "scheduler")
   }

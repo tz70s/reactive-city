@@ -16,13 +16,11 @@
 
 package reacty
 
-import akka.actor.{Actor, ActorLogging, ActorRef, Props, Timers}
+import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import akka.cluster.Cluster
 import akka.cluster.ddata.Replicator._
 import akka.cluster.ddata._
 import reacty.model.Vehicle
-
-import scala.concurrent.duration._
 
 object Analytics extends MetricsService
 

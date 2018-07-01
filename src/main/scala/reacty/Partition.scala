@@ -27,8 +27,8 @@ import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.duration._
 
 object Partition extends MetricsService {
-  override def init()(implicit system: ActorSystem): Unit = {
-    system.actorOf(FlowPartition.props("fog-west"))
+  override def init(location: String, role: String)(implicit system: ActorSystem): Unit = {
+    system.actorOf(FlowPartition.props(location))
   }
 }
 
@@ -68,20 +68,20 @@ class FlowPartition(val location: String) extends Actor with ActorLogging with S
 
   val router = context.actorOf(
     ClusterRouterPool(
-      RoundRobinPool(100),
+      RoundRobinPool(30),
       ClusterRouterPoolSettings(
-        totalInstances = 100,
-        maxInstancesPerNode = 30,
+        totalInstances = 30,
+        maxInstancesPerNode = 15,
         allowLocalRoutees = false,
         useRoles = Set("analytics"))).props(GroupByFlow.props(location)),
     name = "router")
 
   val routeToReflector = context.actorOf(
     ClusterRouterPool(
-      RoundRobinPool(10),
+      RoundRobinPool(30),
       ClusterRouterPoolSettings(
-        totalInstances = 10,
-        maxInstancesPerNode = 5,
+        totalInstances = 30,
+        maxInstancesPerNode = 15,
         allowLocalRoutees = false,
         useRoles = Set("reflector"))).props(Reflector.props(location)),
     name = "route-reflector")

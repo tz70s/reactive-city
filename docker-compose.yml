@@ -1,0 +1,36 @@
+version: '3'
+services:
+  controller:
+    image: tz70s/reactive-city:0.1.0
+    environment:
+      CLUSTER_HOST_IP: controller
+      CLUSTER_SEED_IP: controller
+    command: -r controller -l cloud
+
+  analytics:
+    image: tz70s/reactive-city:0.1.0
+    environment:
+      CLUSTER_HOST_IP: analytics
+      CLUSTER_SEED_IP: controller
+    command: -r analytics -l fog-west
+
+  simulator:
+    image: tz70s/reactive-city:0.1.0
+    environment:
+      CLUSTER_HOST_IP: simulator
+      CLUSTER_SEED_IP: controller
+    command: -r simulator -l fog-west
+
+  reflector:
+    image: tz70s/reactive-city:0.1.0
+    environment:
+      CLUSTER_HOST_IP: reflector
+      CLUSTER_SEED_IP: controller
+    command: -r reflector -l fog-west
+
+  partition:
+    image: tz70s/reactive-city:0.1.0
+    environment:
+      CLUSTER_HOST_IP: partition
+      CLUSTER_SEED_IP: controller
+    command: -r partition -l fog-west

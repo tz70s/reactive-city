@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package reacty.simulator
+package reacty
 
 import akka.actor.{Actor, ActorLogging, ActorSystem, Props, Timers}
 import akka.cluster.Cluster
 import akka.cluster.ClusterEvent.MemberEvent
-import reacty.model.{TrafficFactory, Vehicle}
 import akka.cluster.pubsub.DistributedPubSub
 import akka.cluster.pubsub.DistributedPubSubMediator.Publish
+import reacty.model.TrafficFactory
 
 import scala.concurrent.duration._
 
@@ -43,7 +43,7 @@ class PeriodicSender(val location: String) extends Actor with ActorLogging with 
 
   private def reviseTimer(): Unit = {
     if (cluster.state.members.exists(_.hasRole("partition"))) {
-      timers.startPeriodicTimer(TickKey, Tick, 1 seconds)
+      timers.startPeriodicTimer(TickKey, Tick, 100 millis)
     } else {
       log.warning(s"no available partition now, drop out timer.")
       timers.cancel(TickKey)
@@ -56,7 +56,6 @@ class PeriodicSender(val location: String) extends Actor with ActorLogging with 
     case Tick =>
       log.debug("Send data to the selected partition router ...")
       val msg = TrafficFactory.vehicle
-      log.info(s"Send data of $msg")
       mediator ! Publish(s"$location-partition", msg)
 
     case _: MemberEvent =>
@@ -65,12 +64,8 @@ class PeriodicSender(val location: String) extends Actor with ActorLogging with 
   }
 }
 
-object Simulator {
-
-  def main(args: Array[String]): Unit = {
-    val preferLocation = if (args.length > 0) args(0) else "unset"
-    // Use the randomly assigned port for us.
-    val system = ActorSystem("reactive-city-system")
-    system.actorOf(PeriodicSender.props(preferLocation))
+object Simulator extends MetricsService {
+  override def init(location: String, role: String)(implicit system: ActorSystem): Unit = {
+    system.actorOf(PeriodicSender.props(location))
   }
 }

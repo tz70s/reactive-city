@@ -16,8 +16,6 @@
 
 package reacty
 
-import java.time.{Duration, Instant}
-
 import akka.actor.{Actor, ActorLogging, ActorRef, Props, Timers}
 import akka.cluster.Cluster
 import akka.cluster.ddata.Replicator._
@@ -66,7 +64,7 @@ class Reflector(val location: String) extends Actor with ActorLogging with Timer
       val v = queue.head
       queue = queue.tail
       val _ = shortestPath(v.lane._1, 2, graph, Array.fill(3)(false))
-      val latency = Instant.now().minusMillis(v.time).toEpochMilli
+      val latency = System.currentTimeMillis() - v.time
       log.info(s"Emergency handling for car $v, latency: ${latency}ms")
   }
 }

@@ -58,12 +58,12 @@ class Metrics(private val location: String, private val role: String) extends Ac
 trait MetricsService {
 
   /** Additional init function. */
-  def init()(implicit system: ActorSystem): Unit = ()
+  def init(location: String, role: String)(implicit system: ActorSystem): Unit = ()
 
   def start(location: String, role: String, config: Config): Unit = {
     implicit val system: ActorSystem = ActorSystem("reactive-city-system", config)
     // Create the metrics actor
     system.actorOf(Metrics.props(location, role))
-    init()
+    init(location, role)
   }
 }

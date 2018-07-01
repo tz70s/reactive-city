@@ -31,7 +31,6 @@ object Platform {
   private def clusterConfigString(role: String, location: String, port: Int) = {
     s"""
        |akka.cluster.roles = [$role, $location]
-       |akka.remote.netty.tcp.port = $port
      """.stripMargin
   }
 
@@ -45,6 +44,7 @@ object Platform {
       case "partition"  => Partition
       case "analytics"  => Analytics
       case "reflector"  => Reflector
+      case "simulator"  => Simulator
     }
     launcher(service, conf.location(), conf.role(), clusterConfig)
   }
