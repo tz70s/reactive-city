@@ -19,9 +19,10 @@ package reacty.model
 import spray.json.{DefaultJsonProtocol, RootJsonFormat}
 
 import scala.util.Random
+import java.time.Instant
 
 object ReactiveCityJsonProtocol extends DefaultJsonProtocol {
-  implicit val vehicleFormat: RootJsonFormat[Vehicle] = jsonFormat4(Vehicle)
+  implicit val vehicleFormat: RootJsonFormat[Vehicle] = jsonFormat5(Vehicle)
 }
 
 object TrafficFactory {
@@ -35,8 +36,9 @@ object TrafficFactory {
     val id = rand.nextInt(10000).toString
     val speed = rand.nextDouble() * 100
     val shape = shapes(rand.nextInt(shapes.length))
-    Vehicle(shape, id, speed, lane)
+    val time = Instant.now().toEpochMilli
+    Vehicle(shape, id, speed, lane, time)
   }
 }
 
-case class Vehicle(shape: String, id: String, speed: Double, lane: (Int, Int))
+case class Vehicle(shape: String, id: String, speed: Double, lane: (Int, Int), time: Long)

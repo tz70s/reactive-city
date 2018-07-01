@@ -16,6 +16,8 @@
 
 package reacty
 
+import java.time.{Duration, Instant}
+
 import akka.actor.{Actor, ActorLogging, ActorRef, Props, Timers}
 import akka.cluster.Cluster
 import akka.cluster.ddata.Replicator._
@@ -29,14 +31,21 @@ object Reflector extends MetricsService {
 class Reflector(val location: String) extends Actor with ActorLogging with Timers {
 
   implicit val cluster = Cluster(context.system)
+  private var queue = List[Vehicle]()
   val replicator: ActorRef = DistributedData(context.system).replicator
   val DataKey = ORMultiMapKey[(Int, Int), Double](location)
 
   override def receive: Receive = {
     case v: Vehicle =>
       replicator ! Get(DataKey, ReadLocal)
+      queue = (v :: queue.reverse).reverse
+
     case g @ GetSuccess(DataKey, req) =>
       val elements = g.get(DataKey)
       log.info(s"$elements")
+      val v = queue.head
+      val latency = Instant.now().minusMillis(v.time).toEpochMilli
+      queue = queue.tail
+      log.info(s"Receive message $v, latency: ${latency}ms")
   }
 }
