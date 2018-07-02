@@ -20,7 +20,9 @@ import akka.actor.{Actor, ActorLogging, ActorRef, Props, Timers}
 import akka.cluster.Cluster
 import akka.cluster.ddata.Replicator._
 import akka.cluster.ddata.{DistributedData, ORMultiMapKey}
-import reacty.model.Vehicle
+import akka.cluster.pubsub.DistributedPubSub
+import akka.cluster.pubsub.DistributedPubSubMediator.Publish
+import reacty.model.{Emergency, Vehicle}
 
 object Reflector extends MetricsService {
   def props(location: String): Props = Props(new Reflector(location))
@@ -32,6 +34,7 @@ class Reflector(val location: String) extends Actor with ActorLogging with Timer
   private var queue = List[Vehicle]()
   val replicator: ActorRef = DistributedData(context.system).replicator
   val DataKey = ORMultiMapKey[(Int, Int), Double](location)
+  private val mediator = DistributedPubSub(context.system).mediator
 
   private def shortestPath(current: Int, dst: Int, graph: Array[Array[Double]], visited: Array[Boolean]): Double = {
     visited(current) = true
@@ -63,11 +66,11 @@ class Reflector(val location: String) extends Actor with ActorLogging with Timer
       val graph = convertToArray(elements.entries)
       val v = queue.head
       queue = queue.tail
-      val _ = shortestPath(v.lane._1, 2, graph, Array.fill(3)(false))
+      val result = shortestPath(v.lane._1, 2, graph, Array.fill(3)(false))
       val latency = System.currentTimeMillis() - v.time
       // Data is only effective when latency < 1 sec
       if (latency < 1000) {
-        log.info(s"Emergency handling for car $v, latency: ${latency}ms")
+        mediator ! Publish(s"$location-reflector", Emergency(v, result))
       }
   }
 }

@@ -41,3 +41,5 @@ object TrafficFactory {
 }
 
 case class Vehicle(shape: String, id: String, speed: Double, lane: (Int, Int), time: Long)
+
+case class Emergency(vehicle: Vehicle, speed: Double)

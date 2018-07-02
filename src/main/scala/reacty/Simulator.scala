@@ -20,8 +20,8 @@ import akka.actor.{Actor, ActorLogging, ActorSystem, Props, Timers}
 import akka.cluster.Cluster
 import akka.cluster.ClusterEvent.MemberEvent
 import akka.cluster.pubsub.DistributedPubSub
-import akka.cluster.pubsub.DistributedPubSubMediator.Publish
-import reacty.model.TrafficFactory
+import akka.cluster.pubsub.DistributedPubSubMediator.{Publish, Subscribe}
+import reacty.model.{Emergency, TrafficFactory}
 
 import scala.concurrent.duration._
 
@@ -51,13 +51,17 @@ class PeriodicSender(val location: String) extends Actor with ActorLogging with 
   }
 
   private val mediator = DistributedPubSub(context.system).mediator
+  val subscribed = Subscribe(s"$location-reflector", self)
+  mediator ! subscribed
 
   override def receive: Receive = {
     case Tick =>
       log.debug("Send data to the selected partition router ...")
       val msg = TrafficFactory.vehicle
       mediator ! Publish(s"$location-partition", msg)
-
+    case e: Emergency =>
+      val latency = System.currentTimeMillis() - e.vehicle.time
+      log.info(s"Receive emergency re-route for vehicle ${e.vehicle}, latency ${latency}ms")
     case _: MemberEvent =>
       // Checkout whether partition exists in cluster members and set/unset timer for publishing message.
       reviseTimer()
