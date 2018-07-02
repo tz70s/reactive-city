@@ -65,6 +65,9 @@ class Reflector(val location: String) extends Actor with ActorLogging with Timer
       queue = queue.tail
       val _ = shortestPath(v.lane._1, 2, graph, Array.fill(3)(false))
       val latency = System.currentTimeMillis() - v.time
-      log.info(s"Emergency handling for car $v, latency: ${latency}ms")
+      // Data is only effective when latency < 1 sec
+      if (latency < 1000) {
+        log.info(s"Emergency handling for car $v, latency: ${latency}ms")
+      }
   }
 }
