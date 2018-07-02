@@ -45,7 +45,7 @@ class PeriodicSender(val location: String) extends Actor with ActorLogging with 
     if (cluster.state.members.exists(_.hasRole("partition"))) {
       timers.startPeriodicTimer(TickKey, Tick, 100 millis)
     } else {
-      log.warning(s"no available partition now, drop out timer.")
+      log.debug(s"no available partition now, drop out timer.")
       timers.cancel(TickKey)
     }
   }

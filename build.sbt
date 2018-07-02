@@ -20,7 +20,7 @@ enablePlugins(JavaAppPackaging)
 enablePlugins(DockerPlugin)
 
 lazy val commonSettings = Seq(
-  version := "0.1.0",
+  version := "0.1.2",
   scalaVersion := "2.12.6"
 )
 
@@ -38,8 +38,7 @@ lazy val libraries = Seq(
   "com.typesafe.akka" %% "akka-actor" % akkaVersion,
   "com.typesafe.akka" %% "akka-testkit" % akkaVersion % Test,
   "io.spray" %%  "spray-json" % "1.3.4",
-  "org.scalatest" %% "scalatest" % "3.0.5" % Test,
-  "de.aktey.akka.visualmailbox" %% "collector" % "1.1.0"
+  "org.scalatest" %% "scalatest" % "3.0.5" % Test
 )
 
 lazy val app = (project in file("."))
