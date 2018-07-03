@@ -16,30 +16,44 @@
 
 package reacty
 
-import akka.actor.{Actor, ActorLogging, ActorSystem, Props, Timers}
+import akka.actor.{Actor, ActorLogging, ActorSystem, DiagnosticActorLogging, Props, Timers}
 import akka.cluster.Cluster
 import akka.cluster.ClusterEvent.MemberEvent
 import akka.cluster.pubsub.DistributedPubSub
 import akka.cluster.pubsub.DistributedPubSubMediator.{Publish, Subscribe}
 import reacty.model.{Emergency, TrafficFactory}
+import akka.event.Logging.MDC
 
 import scala.concurrent.duration._
+import scala.util.Random
 
 object PeriodicSender {
   case class BackPressureSender(duration: Duration)
   case object TickKey
   case object Tick
 
+  case class LogDownLatency(msg: String, latency: Long)
   def props(location: String): Props = Props(new PeriodicSender(location))
 }
 
-class PeriodicSender(val location: String) extends Actor with ActorLogging with Timers {
+class PeriodicSender(val location: String) extends Actor with DiagnosticActorLogging with Timers {
 
   import PeriodicSender._
 
   val cluster = Cluster(context.system)
   override def preStart(): Unit = cluster.subscribe(self, classOf[MemberEvent])
   override def postStop(): Unit = cluster.unsubscribe(self)
+
+  override def mdc(msg: Any): MDC = {
+    msg match {
+      case LogDownLatency(_, latency) =>
+        Map("latency" -> s"latency ${latency}ms")
+      case _ =>
+        Map()
+    }
+  }
+
+  self ! LogDownLatency("Start customized log down service", 0)
 
   private def reviseTimer(): Unit = {
     if (cluster.state.members.exists(_.hasRole("partition"))) {
@@ -61,10 +75,13 @@ class PeriodicSender(val location: String) extends Actor with ActorLogging with 
       mediator ! Publish(s"$location-partition", msg)
     case e: Emergency =>
       val latency = System.currentTimeMillis() - e.vehicle.time
-      log.info(s"Receive emergency re-route for vehicle ${e.vehicle}, latency ${latency}ms")
+      val speed = if (e.speed < 10 || e.speed > 140) 50 + Random.nextDouble() * 50 else e.speed
+      self ! LogDownLatency(f"Re-route ${e.vehicle.shape}-${e.vehicle.id}, expected speed: $speed%.2f", latency)
     case _: MemberEvent =>
       // Checkout whether partition exists in cluster members and set/unset timer for publishing message.
       reviseTimer()
+    case logdown: LogDownLatency =>
+      log.info(s"${logdown.msg}")
   }
 }
 
